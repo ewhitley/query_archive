@@ -27,22 +27,28 @@ create table query_archive.query (
 	) WITH (DATA_COMPRESSION = PAGE)
 )
 
+--drop table query_archive.query_stored_result
 create table query_archive.query_stored_result (
 	query_id int NOT NULL
+	, resultset_id int NOT NULL
 	, result_dts datetime2(0) NOT NULL DEFAULT GETDATE()
 	, result_data varchar(max) --your json or whatever
 	, result_format varchar(10) NOT NULL DEFAULT 'JSON'
 	 CONSTRAINT [pk_qa_query_stored_result] PRIMARY KEY CLUSTERED 
 	(
 		query_id asc
+		, resultset_id
 	) WITH (DATA_COMPRESSION = PAGE)
 )
 
-create nonclustered index ix_qa_NULL_query_id on query_archive.query_stored_result (query_id) with(data_compression = page)
+create nonclustered index ix_qa_query_id on query_archive.query_stored_result (query_id) with(data_compression = page)
 
+--drop table query_archive.query_stored_result_columns
 create table query_archive.query_stored_result_columns (
 	stored_result_column_id int identity (1,1) NOT NULL
 	, query_id int NOT NULL
+	, resultset_id int NOT NULL
+	, ordinal_position int NOT NULL
 	, column_name varchar(100) NOT NULL
 	, data_type varchar(50) NOT NULL
 	 CONSTRAINT [pk_qa_query_stored_result_columns] PRIMARY KEY CLUSTERED 
@@ -51,7 +57,7 @@ create table query_archive.query_stored_result_columns (
 	) WITH (DATA_COMPRESSION = PAGE)
 )
 
-create nonclustered index ix_qa_query_stored_result_columns_query_id on query_archive.query_stored_result_columns (query_id) with(data_compression = page)
+create nonclustered index ix_qa_query_stored_result_columns_query_id_resultset_id on query_archive.query_stored_result_columns (query_id, resultset_id) with(data_compression = page)
 
 
 

@@ -28,7 +28,11 @@ insert into query_archive.query (query) values ('exec sp_who2')
 
 insert into query_archive.query (query) values ('select ''Dan'' as first_name')
 
+--example with function and unnamed column returns
+insert into query_archive.query (query) values ('select getdate(), getdate(), getdate()')
 
+--example with multiple result sets
+insert into query_archive.query (query) values ('select getdate(), getdate(), getdate(); exec sp_who;')
 
 
 

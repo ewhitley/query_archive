@@ -3,6 +3,7 @@ GO
 
 create or alter procedure query_archive.get_query_stored_result
 	@query_id int		--the ID of the query where we already have stored results populated
+	, @resultset_id int = 1 --default to the first result set
 	, @debug int = 0	--1/0
 as
 
@@ -23,13 +24,14 @@ declare @query_sql nvarchar(max)
 declare @column_list_table table
 (
 	query_id int,
+	resultset_id int,
 	column_name varchar(255), 
 	data_type varchar(255)
 ) 
 
 --populate it with our query-specific list of column names and target data types
-insert into @column_list_table (query_id, column_name, data_type)
-select query_id, column_name, data_type from query_archive.query_stored_result_columns where query_id = @query_id
+insert into @column_list_table (query_id, resultset_id, column_name, data_type)
+select query_id, resultset_id, column_name, data_type from query_archive.query_stored_result_columns where query_id = @query_id and resultset_id = @resultset_id
 
 --once we have our column list, convert it into a SQL string with names and types
 -- EX: col_1 int, col_2 varchar(10), col_3 datetime2(0)... etc.
@@ -44,6 +46,7 @@ set @column_list = (
 			FROM @column_list_table src1
 			WHERE src1.query_id = src2.query_id
 			and src1.query_id = @query_id
+			and src1.resultset_id = @resultset_id
 			ORDER BY src1.query_id
 			FOR XML PATH ('')
 		), 2, 1000) [column_list]
@@ -136,6 +139,7 @@ BEGIN
 				FROM @column_list_table src1
 				WHERE src1.query_id = src2.query_id
 				and src1.query_id = @query_id
+				and src1.resultset_id = @resultset_id
 				ORDER BY src1.query_id
 				FOR XML PATH ('')
 			), 2, 1000) [column_list]
@@ -162,6 +166,7 @@ BEGIN
 				) as result_data
 		where
 			sr.query_id =  ' + cast(@query_id as varchar(10)) + '
+			and sr.resultset_id = ' + cast(@resultset_id as varchar(10)) + '
 			and sr.result_format = ''JSON''
 	'
 			
@@ -193,6 +198,7 @@ BEGIN
 				FROM @column_list_table src1
 				WHERE src1.query_id = src2.query_id
 				and src1.query_id = @query_id
+				and src1.resultset_id = @resultset_id
 				ORDER BY src1.query_id
 				FOR XML PATH ('')
 			), 2, 1000) [column_list]
@@ -217,6 +223,7 @@ BEGIN
 				query_archive.query_stored_result sr
 			where
 				sr.query_id = ' + cast(@query_id as varchar(10)) + '
+				and sr.resultset_id = ' + cast(@resultset_id as varchar(10)) + '
 				and sr.result_format = ''XML''
 		)
 		select
