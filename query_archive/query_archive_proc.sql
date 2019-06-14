@@ -12,6 +12,16 @@ SET NOCOUNT ON
 --this is our ultimate query we'll run to pull stored data and map it to our requested columns
 declare @query_sql nvarchar(max)
 
+IF @resultset_id > 1
+BEGIN
+	declare @max_result_id int = (select top 1 resultset_id from query_archive.query_stored_result where query_id = @query_id)
+	IF @resultset_id > @max_result_id
+	BEGIN
+		RAISERROR ('', 10, 1) WITH NOWAIT
+		RAISERROR ('The result set ID you requested is outside the range of known result sets. Resetting to 1.', 10, 1) WITH NOWAIT
+		set @resultset_id = 1
+	END
+END
 
 --////////////////////////////////////////////////////////////////
 -- FORMAT OUTPUT FOR SSRS (or other tools)
